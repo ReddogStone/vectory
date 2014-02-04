@@ -31,6 +31,7 @@
 	<script src="jabaku/engine/text_system.js" type="text/javascript"></script>
 	<script src="jabaku/engine/geometry_system.js" type="text/javascript"></script>
 	<script src="jabaku/engine/mesh_library.js" type="text/javascript"></script>
+	<script src="jabaku/engine/camera_system.js" type="text/javascript"></script>
 
 	<script src="jabaku/engine/renderables.js" type="text/javascript"></script>
 	<script src="jabaku/engine/sprite_renderable.js" type="text/javascript"></script>
@@ -51,6 +52,7 @@
 	const PROFILER_LINES = 50;
 
 	var g_canvas;
+	var g_camSystem;
 	var g_camEntity;
 	var g_scene;
 	var g_fpsLabel;
@@ -99,7 +101,8 @@
 			g_mouse.x + ', ' + g_mouse.y + ', ' + (g_mouse.down ? 'down': 'up') + ')');
 		
 		FrameProfiler.start('UpdateAll');
-		g_camEntity.camera.rotateAroundTargetHoriz(g_camEntity.transformable, delta);
+		g_camEntity.transformable.rotateAroundTargetHoriz(g_camSystem.getTarget(g_camEntity.camera), delta);
+		g_camSystem.run([g_camEntity]);
 		FrameProfiler.stop();
 		
 		Engine3D.clear();
@@ -209,13 +212,15 @@
 			
 		g_viewport = new Viewport();
 		
+		g_camSystem = new Jabaku.CameraSystem();
 		g_camEntity = {
-			camera: new Camera(0.5 * Math.PI, g_canvas.clientWidth / g_canvas.clientHeight, 0.01, 1000),
+			camera: g_camSystem.addPerspective(
+				0.5 * Math.PI, g_canvas.clientWidth / g_canvas.clientHeight, 0.01, 1000),
 			transformable: new Transformable(new Vecmath.Vector3(0, 0, 10))
 		};
-		g_camEntity.camera.target = new Vecmath.Vector3(0, 0, 0);
+		g_camSystem.setTarget(g_camEntity.camera, new Vecmath.Vector3(0, 0, 0));
 
-		g_scene = new Scene(Engine3D);
+		g_scene = new Scene(Engine3D, g_camSystem);
 		var textSystem = g_scene.textSystem;
 
 		g_fpsLabel = {

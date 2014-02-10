@@ -27,18 +27,14 @@
 	<script src="jabaku/engine/texture_atlas.js" type="text/javascript"></script>
 	<script src="jabaku/engine/camera.js" type="text/javascript"></script>
 	<script src="jabaku/engine/viewport.js" type="text/javascript"></script>
-
-	<script src="jabaku/entity_system/entity_system.js" type="text/javascript"></script>
-	<script src="jabaku/entity_system/system_base.js" type="text/javascript"></script>
-
-	<script src="jabaku/engine/id_container.js" type="text/javascript"></script>
 	<script src="jabaku/engine/text.js" type="text/javascript"></script>
-	<script src="jabaku/engine/geometry_system.js" type="text/javascript"></script>
 	<script src="jabaku/engine/mesh_library.js" type="text/javascript"></script>
-	<script src="jabaku/engine/transform_system.js" type="text/javascript"></script>
 	<script src="jabaku/engine/transform.js" type="text/javascript"></script>
 	<script src="jabaku/engine/render_batch.js" type="text/javascript"></script>
 	<script src="jabaku/engine/quad_batch.js" type="text/javascript"></script>
+
+	<script src="jabaku/entity_system/entity_system.js" type="text/javascript"></script>
+	<script src="jabaku/entity_system/system_base.js" type="text/javascript"></script>
 
 	<script src="jabaku/profiler/profiler.js" type="text/javascript"></script>
 
@@ -59,7 +55,6 @@
 <canvas id="canvas" width="1024" height="768"></canvas>
 
 <script>
-	const BLUE = new Color(0.3, 0.5, 0.7);
 	const PROFILER_LINES = 50;
 
 	var g_canvas;
@@ -81,13 +76,15 @@
 	var g_mainSceneSettings;
 	var g_mainViewport;
 	var g_quadBatch;
+	var g_frameBuffer;
+	var g_screenQuad;
 
 	var g_debugSystem;
 	var g_debugTransSystem;
 	var g_debugTextSystem;
 
 	var g_testCoordPlane;
-	
+
 	window.requestAnimFrame = (function () {
 		return window.requestAnimationFrame ||
 			window.webkitRequestAnimationFrame ||
@@ -99,13 +96,30 @@
 			};
 	}) ();
 	
+	function drawOffscreen() {
+		Engine3D.setViewport({x: 0, y: 0, sx: 1024, sy: 768});
+		Engine3D.clear();
+
+		var params = {};
+		g_mainSceneSettings.setParams(g_mainViewport, g_mainCamera.get(Vectory.Camera), params);
+
+		g_quadBatch.prepare(Engine3D);
+		g_quadBatch.setParams(params);
+		Engine3D.setBlendMode(g_quadBatch.material.blendMode);
+		Engine3D.setProgram(g_quadBatch.material.program, params);
+		g_quadBatch.render(Engine3D);
+	}
+
 	function animate() {
 		FrameProfiler.startFrame();
-	
+
 		var time = window.performance.now();
 		var delta = (time - lastTime) * 0.001;
 		lastTime = time;
-		
+
+		//===========================================
+		// Update
+		//===========================================
 		FrameProfiler.start('UpdateAll');
 		g_mainCamera.get(Vectory.Transform).
 			rotateAroundTargetHoriz(g_mainCamera.get(Vectory.Camera).target, delta * 0.5);
@@ -119,23 +133,36 @@
 		g_mainSceneSettings.pointLight1 = g_mainCamera.get(Vectory.PointLight);
 
 		FrameProfiler.stop();
-		
-		Engine3D.clear();
-		
-		FrameProfiler.start('RenderAll');
-		var params = {};
-		g_mainSceneSettings.setParams(g_mainViewport, g_mainCamera.get(Vectory.Camera), params);
 
-		g_quadBatch.prepare(Engine3D);
-		g_quadBatch.setParams(params);
-		Engine3D.setBlendMode(g_quadBatch.material.blendMode);
-		Engine3D.setProgram(g_quadBatch.material.program, params);
-		g_quadBatch.render(Engine3D);
+		//===========================================
+		// render scene
+		//===========================================
+		FrameProfiler.start('RenderAll');
+
+		Engine3D.setBlendMode(BlendMode.SOLID);
+
+		Engine3D.setFrameBuffer('test_fb');
+		drawOffscreen();
+
+		Engine3D.setFrameBuffer(null);
+
+		var drawBufferSize = Engine3D.getDrawingBufferSize();
+		Engine3D.setViewport({x: 0, y: 0, sx: drawBufferSize.x, sy: drawBufferSize.y});
+		Engine3D.clear();
+
+		var params = {};
+		params.uTexture = {texture: Engine3D.getTexture('test_fb_rt'), sampler: 0};
+		Engine3D.setBlendMode(BlendMode.SOLID);
+		Engine3D.setProgram(Engine3D.getProgram('copy'), params);
+		g_screenQuad.render(Engine3D);
 
 		FrameProfiler.stop();
-		
+
 		FrameProfiler.stopFrame();
 
+		//===========================================
+		// render debug stuff
+		//===========================================
 		// update fps
 		g_framesTime += delta;
 		g_frames++;
@@ -161,33 +188,36 @@
 			}
 		});
 
+		g_debugTransSystem.update();
+
 		var bufferSize = Engine3D.getDrawingBufferSize();
+		Engine3D.setFrameBuffer(null);
 		g_debugTextSystem.render(Engine3D, {
 			uScreenSize: [bufferSize.x, bufferSize.y]
 		});
-		
+
 		requestAnimFrame( function() { animate(); } );
 	}
 	
-    function extractMouseCoords(canvas, evt){
-        // get canvas position
-        var obj = canvas;
-        var top = 0;
-        var left = 0;
-        while (obj && obj.tagName != 'BODY') {
-            top += obj.offsetTop;
-            left += obj.offsetLeft;
-            obj = obj.offsetParent;
-        }
+	function extractMouseCoords(canvas, evt){
+		// get canvas position
+		var obj = canvas;
+		var top = 0;
+		var left = 0;
+		while (obj && obj.tagName != 'BODY') {
+			top += obj.offsetTop;
+			left += obj.offsetLeft;
+			obj = obj.offsetParent;
+		}
 
-        // return relative mouse position
-        var mouseX = evt.clientX - left + window.pageXOffset;
-        var mouseY = evt.clientY - top + window.pageYOffset;
-        return {
-            x: mouseX,
-            y: mouseY
-        };
-    }
+		// return relative mouse position
+		var mouseX = evt.clientX - left + window.pageXOffset;
+		var mouseY = evt.clientY - top + window.pageYOffset;
+		return {
+			x: mouseX,
+			y: mouseY
+		};
+	}
 
 	var g_drag = {x: 0, y: 0};
 	var g_click = false;
@@ -227,79 +257,22 @@
 		Engine3D.init(g_canvas);
 		Engine3D.setClearColor(new Color(0.1, 0.1, 0.1));
 		
+		Engine3D.createProgram('screenspace',
+			FileUtils.loadFile('jabaku/shaders/screenspace.vshader'),
+			FileUtils.loadFile('jabaku/shaders/screenspace.fshader'));
+		Engine3D.createProgram('copy',
+			FileUtils.loadFile('jabaku/shaders/pass_through.vshader'),
+			FileUtils.loadFile('jabaku/shaders/posteffect.fshader'));
 		Engine3D.createProgram('simple',
 			FileUtils.loadFile('jabaku/shaders/simple.vshader'),
 			FileUtils.loadFile('jabaku/shaders/simple.fshader'));
 		Engine3D.createProgram('simple_instanced',
 			FileUtils.loadFile('jabaku/shaders/simple_instanced.vshader'),
 			FileUtils.loadFile('jabaku/shaders/simple_instanced.fshader'));
-		Engine3D.createProgram('screenspace',
-			FileUtils.loadFile('jabaku/shaders/screenspace.vshader'),
-			FileUtils.loadFile('jabaku/shaders/screenspace.fshader'));
-		Engine3D.createProgram('text',
-			FileUtils.loadFile('jabaku/shaders/text.vshader'),
-			FileUtils.loadFile('jabaku/shaders/screenspace.fshader'));
-		Engine3D.createProgram('pointsprite',
-			FileUtils.loadFile('jabaku/shaders/pointsprite.vshader'),
-			FileUtils.loadFile('jabaku/shaders/screenspace.fshader'));
-		Engine3D.createProgram('line',
-			FileUtils.loadFile('jabaku/shaders/line.vshader'),
-			FileUtils.loadFile('jabaku/shaders/screenspace.fshader'));
-		Engine3D.createProgram('pointsprite_instanced',
-			FileUtils.loadFile('jabaku/shaders/pointsprite_instanced.vshader'),
-			FileUtils.loadFile('jabaku/shaders/screenspace_instanced.fshader'));
-		Engine3D.createProgram('line_instanced',
-			FileUtils.loadFile('jabaku/shaders/line_instanced.vshader'),
-			FileUtils.loadFile('jabaku/shaders/screenspace_instanced.fshader'));
 
 		Engine3D.createTextureFromFile('empty_texture', 'jabaku/data/empty_texture.png');
 		Engine3D.createTextureFromFile('line_patterns', 'data/textures/line_patterns.png');
-			
-		//======================
-		// real scene
-		//======================
-/*		g_scene = new Scene(Engine3D);
-		var textSystem = g_scene.textSystem;
-		var transformSystem = g_scene.transformSystem;
-		var camSystem = g_scene.cameraSystem;
-
-		g_camEntity = g_scene.addEntity();
-		camSystem.addPerspective(g_camEntity, 
-			0.5 * Math.PI, g_canvas.clientWidth / g_canvas.clientHeight, 0.01, 1000),
-		camSystem.setTarget(g_camEntity, new Vecmath.Vector3(0, 0, 0));
-		transformSystem.add(g_camEntity, new Vecmath.Vector3(0, 0, 10));		
-
-		g_scene.pointLight1 = new PointLight(new Vecmath.Vector3(0, 0, 10), new Color(1.0, 1.0, 1.0, 1.0));
-
-		var lightCube = g_scene.addEntity();
-		g_scene.geometrySystem.setGeometry(lightCube, 
-			new SimpleMaterial(Engine3D, null, g_scene.pointLight1.color, 0.0));
-		g_scene.geometrySystem.addCube(lightCube);
-		transformSystem.add(lightCube, g_scene.pointLight1.pos, null, new Vecmath.Vector3(0.1, 0.1, 0.1));
-
-		var cube = g_scene.addEntity();
-		g_scene.geometrySystem.setGeometry(cube, new SimpleMaterial(Engine3D, null, Color.red, 0.0));
-		g_scene.geometrySystem.addCube(cube);
-		transformSystem.add(cube, new Vecmath.Vector3(3, 3, 5), null, new Vecmath.Vector3(2, 2, 2));
-		
-		var material = new SimpleMaterial(Engine3D, null, new Color(1.0, 1.0, 1.0, 0.5), 0.0);
-		material.blendMode = BlendMode.PREMUL_ALPHA;
-		g_testCoordPlane = g_scene.addEntity();
-		g_scene.geometrySystem.setGeometry(g_testCoordPlane, material);
-		g_scene.geometrySystem.addQuad(g_testCoordPlane, 
-			new Transform(null, null, new Vecmath.Vector3(10, 10, 10)));
-
-		for (var i = 0; i < 11; ++i) {
-			var width = ((i % 5) == 0) ? 0.06 : 0.03;
-			g_scene.geometrySystem.addQuad(g_testCoordPlane,
-				new Transform(new Vecmath.Vector3(i - 5, 0, 0.01), null, new Vecmath.Vector3(width, 10.1, 1)));
-			g_scene.geometrySystem.addQuad(g_testCoordPlane, 
-				new Transform(new Vecmath.Vector3(0, i - 5, 0.01), null, new Vecmath.Vector3(10.1, width, 1)));
-		}
-
-		transformSystem.add(g_testCoordPlane, new Vecmath.Vector3(2, 0, 0),
-			new Vecmath.Quaternion().setAxisAngle(new Vecmath.Vector3(0, 1, 0), 0.25 * Math.PI));
-*/
+		Engine3D.createTextureFromFile('vectory_icon', 'data/vectory_icon.png');
 
 		//======================
 		// main scene
@@ -345,6 +318,26 @@
 			new Vecmath.Vector3(0, 0, 0),
 			new Vecmath.Quaternion().setAxisAngle(new Vecmath.Vector3(0, 1, 0), 0.25 * Math.PI)));
 
+		Engine3D.createFrameBuffer('test_fb', {x: 1024, y: 768});
+
+		var meshData = [
+			{
+				"vertices": [
+					//x y tu tv
+					-1, 1, 0.0, 0.0,
+					 1, 1, 1.0, 0.0,
+					-1,-1, 0.0, 1.0,
+					 1,-1, 1.0, 1.0],
+				"indices": [0, 1, 2, 2, 1, 3],
+				"description": {
+					"aPosition": { "components": 2, "type": "FLOAT", "normalized": false},
+					"aTexCoord": { "components": 2, "type": "FLOAT", "normalized": false}
+				}
+			}
+		];
+
+		g_screenQuad = Mesh.loadFromJson(Engine3D, meshData);
+
 		//======================
 		// debug scene
 		//======================
@@ -366,7 +359,7 @@
 				
 		g_mousePosLabel = g_debugSystem.newEntity('Mouse Pos Label');
 		g_mousePosLabel.add(new Vectory.ScreenText(Engine3D, '', new Jabaku.Font('Georgia', 14), Color.white));
-		g_mousePosLabel.add(new Vectory.Transform(new Vecmath.Vector3(800, 727, 0)));
+		g_mousePosLabel.add(new Vectory.Transform(new Vecmath.Vector3(800, 727, 0)));		
 
 		g_canvas.addEventListener('mousedown', handleMouseDown, false);
 		g_canvas.addEventListener('mousemove', handleMouseMove, false);

@@ -106,17 +106,6 @@
 		Engine3D.setBlendMode(BlendMode.SOLID);
 		Engine3D.setProgram(g_quadBatch.material.program, params);
 		g_quadBatch.render(Engine3D);
-
-		Engine3D.setFrameBuffer(null);
-		Engine3D.setFrameBuffer('test_fb');
-//		Engine3D.clear();
-		Engine3D.setViewport({x: 700, y: 0, sx: 324, sy: 324});
-
-		var params = {};
-		params.uTexture = {texture: Engine3D.getTexture('dt_test_fb_dt'), sampler: 0};
-		Engine3D.setBlendMode(BlendMode.NONE);
-		Engine3D.setProgram(Engine3D.getProgram('copy'), params);
-		g_screenQuad.render(Engine3D);
 	}
 
 	function animate() {
@@ -149,22 +138,26 @@
 		FrameProfiler.start('RenderAll');
 		Engine3D.setFrameBuffer(null);
 		var drawBufferSize = Engine3D.getDrawingBufferSize();
-		Engine3D.setBlendMode(BlendMode.SOLID);
+		Engine3D.setBlendMode(BlendMode.NONE);
 		Engine3D.clear();
 
 		Engine3D.setFrameBuffer('dt_test_fb');
-		Engine3D.setViewport({x: 0, y: 0, sx: drawBufferSize.x, sy: drawBufferSize.y});
+		Engine3D.setDefaultViewport();
 		Engine3D.clear();
 		drawScene();
 
-		Engine3D.setFrameBuffer(null);
-		Engine3D.setViewport({x: 0, y: 0, sx: drawBufferSize.x, sy: drawBufferSize.y});
+		Engine3D.setDefaultFrameBuffer();
+		Engine3D.setDefaultViewport();
 
-		var params = {};
-		params.uTexture = {texture: Engine3D.getTexture('test_fb_rt'), sampler: 0};
 		Engine3D.setBlendMode(BlendMode.NONE);
-		Engine3D.setProgram(Engine3D.getProgram('posteffect'), params);
-		g_screenQuad.render(Engine3D);
+		Engine3D.setProgram(Engine3D.getProgram('fxaa'), {
+			uTexture: {texture: Engine3D.getTexture('dt_test_fb_rt'), sampler: 0}
+		});
+		Engine3D.renderScreenQuad();
+
+		Engine3D.setViewport({x: 700, y: 0, sx: 324, sy: 324});
+
+		Engine3D.renderDebugQuad(Engine3D.getTexture('dt_test_fb_dt'), 700, 0, 324, 324);
 
 		FrameProfiler.stop();
 
@@ -200,8 +193,10 @@
 
 		g_debugTransSystem.update();
 
+		Engine3D.setDefaultFrameBuffer();
+		Engine3D.setDefaultViewport();
+
 		var bufferSize = Engine3D.getDrawingBufferSize();
-		Engine3D.setFrameBuffer(null);
 		g_debugTextSystem.render(Engine3D, {
 			uScreenSize: [bufferSize.x, bufferSize.y]
 		});
@@ -265,17 +260,17 @@
 		g_canvas = document.getElementById('canvas');
 		
 		Engine3D.init(g_canvas);
-		Engine3D.setClearColor(new Color(0.1, 0.1, 0.1));
+		Engine3D.setClearColor(new Color(0.2, 0.2, 0.2));
 		
 		Engine3D.createProgram('screenspace',
 			FileUtils.loadFile('jabaku/shaders/screenspace.vshader'),
 			FileUtils.loadFile('jabaku/shaders/screenspace.fshader'));
-		Engine3D.createProgram('posteffect',
+		Engine3D.createProgram('fxaa',
 			FileUtils.loadFile('jabaku/shaders/pass_through.vshader'),
 			FileUtils.loadFile('jabaku/shaders/posteffect.fshader'));
 		Engine3D.createProgram('copy',
 			FileUtils.loadFile('jabaku/shaders/pass_through.vshader'),
-			FileUtils.loadFile('jabaku/shaders/screenspace.fshader'));
+			FileUtils.loadFile('jabaku/shaders/copy.fshader'));
 		Engine3D.createProgram('simple',
 			FileUtils.loadFile('jabaku/shaders/simple.vshader'),
 			FileUtils.loadFile('jabaku/shaders/simple.fshader'));
@@ -333,23 +328,6 @@
 
 		Engine3D.createFrameBuffer('test_fb', {x: 1024, y: 768});
 		Engine3D.createFrameBufferWithDepthTexture('dt_test_fb', {x: 1024, y: 768});
-
-		var meshData = [
-			{
-				"vertices": [
-					//x y tu tv
-					-1, 1, 0.0, 1.0,
-					 1, 1, 1.0, 1.0,
-					-1,-1, 0.0, 0.0,
-					 1,-1, 1.0, 0.0],
-				"indices": [0, 1, 2, 2, 1, 3],
-				"description": {
-					"aPosition": { "components": 2, "type": "FLOAT", "normalized": false},
-					"aTexCoord": { "components": 2, "type": "FLOAT", "normalized": false}
-				}
-			}
-		];
-		g_screenQuad = Mesh.loadFromJson(Engine3D, meshData);
 
 		//======================
 		// debug scene

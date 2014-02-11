@@ -115,6 +115,9 @@
 		g_mainCamera.get(Vectory.Transform).
 			rotateAroundTargetHoriz(g_mainCamera.get(Vectory.Camera).target, delta * 0.5);
 
+		g_testCoordPlane.get(Vectory.Transform).rotateX(0.3 * delta);
+		g_testCoordPlane.get(Vectory.Transform).rotateZ(0.3 * delta);
+
 		g_transformSystem.update();
 		g_debugTransSystem.update();
 		g_cameraSystem.update();
@@ -272,7 +275,7 @@
 
 		g_mainCamera = g_mainSystem.newEntity('Main Camera');
 		var cam = new Vectory.Camera();
-		cam.makePerspective(0.5 * Math.PI, g_canvas.clientWidth / g_canvas.clientHeight, 5, 20);
+		cam.makePerspective(0.5 * Math.PI, g_canvas.clientWidth / g_canvas.clientHeight, 2, 20);
 		cam.target = new Vecmath.Vector3(0, 0, 0);
 		g_mainCamera.add(cam);
 		g_mainCamera.add(new Vectory.Transform(new Vecmath.Vector3(0, 0, 10)));
@@ -285,7 +288,7 @@
 
 		g_testCoordPlane = g_mainSystem.newEntity('Coordinates Plane');
 
-		var material = new SimpleMaterial(Engine3D, null, new Color(1.0, 1.0, 1.0, 0.5), 0.0);
+		var material = new SimpleMaterial(Engine3D, null, new Color(0.0, 0.3, 0.6, 0.7), 0.0);
 		var quads = new Vectory.Quads(g_quadBatch, material);
 		quads.add(new Vectory.Transform(null, null, new Vecmath.Vector3(10, 10, 10)));
 

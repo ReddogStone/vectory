@@ -225,6 +225,9 @@
 		if (event.keyCode == 120) { // F9
 			FrameProfiler.toggle();
 		}
+		if (event.keyCode == 119) { // F8
+			g_mainRenderer.debugRender = !g_mainRenderer.debugRender;
+		}
 	}
 	function handleKeyUp(event) {
 	}
@@ -282,7 +285,7 @@
 
 		g_testCoordPlane = g_mainSystem.newEntity('Coordinates Plane');
 
-		var material = new SimpleMaterial(Engine3D, null, new Color(1.0, 1.0, 1.0, 0.8), 0.0);
+		var material = new SimpleMaterial(Engine3D, null, new Color(1.0, 1.0, 1.0, 0.5), 0.0);
 		var quads = new Vectory.Quads(g_quadBatch, material);
 		quads.add(new Vectory.Transform(null, null, new Vecmath.Vector3(10, 10, 10)));
 
@@ -303,13 +306,20 @@
 			new Vecmath.Quaternion().setAxisAngle(new Vecmath.Vector3(0, 1, 0), 0.25 * Math.PI)));
 
 		var secondPlane = g_mainSystem.newEntity('Second Plane');
-
 		var quads = new Vectory.Quads(g_quadBatch, material);
 		quads.add(new Vectory.Transform(null, null, new Vecmath.Vector3(10, 10, 10)));
 		secondPlane.add(quads);
 		secondPlane.add(new Vectory.Transform(
 			new Vecmath.Vector3(0, 0, 0),
 			new Vecmath.Quaternion().setAxisAngle(new Vecmath.Vector3(0, 1, 0), -0.25 * Math.PI)));
+
+		var thirdPlane = g_mainSystem.newEntity('Second Plane');
+		var quads = new Vectory.Quads(g_quadBatch, material);
+		quads.add(new Vectory.Transform(null, null, new Vecmath.Vector3(10, 10, 10)));
+		thirdPlane.add(quads);
+		thirdPlane.add(new Vectory.Transform(
+			new Vecmath.Vector3(0, 0, 0),
+			new Vecmath.Quaternion().setAxisAngle(new Vecmath.Vector3(0, 1, 0), 0 * Math.PI)));
 
 		g_mainRenderer = new Jabaku.DepthPeelingRenderer(Engine3D, new Color(0.1, 0.1, 0.1, 1.0));
 

@@ -32,7 +32,9 @@
 	<script src="jabaku/engine/transform.js" type="text/javascript"></script>
 	<script src="jabaku/engine/render_batch.js" type="text/javascript"></script>
 	<script src="jabaku/engine/quad_batch.js" type="text/javascript"></script>
-	<script src="jabaku/engine/render_pass.js" type="text/javascript"></script>
+
+	<script src="jabaku/renderer/renderer_utils.js" type="text/javascript"></script>
+	<script src="jabaku/renderer/simple_forward_renderer.js" type="text/javascript"></script>
 
 	<script src="jabaku/entity_system/entity_system.js" type="text/javascript"></script>
 	<script src="jabaku/entity_system/system_base.js" type="text/javascript"></script>
@@ -80,6 +82,7 @@
 	var g_frameBuffer;
 	var g_screenQuad;
 	var g_partScreenQuad;
+	var g_mainRenderer;
 
 	var g_debugSystem;
 	var g_debugTransSystem;
@@ -98,21 +101,6 @@
 			};
 	}) ();
 	
-	function drawScene() {
-		g_quadBatch.material.blendMode = BlendMode.SOLID;
-		g_quadBatch.material._program = Engine3D.getProgram('simple_instanced');
-		Jabaku.renderPass(Engine3D, g_mainCamera.get(Vectory.Camera),
-			g_mainLightSettings, [g_quadBatch], 'dt_test_fb');
-
-		var params = {
-			uDepthTexture: {texture: Engine3D.getTexture('dt_test_fb_dt'), sampler: 1}
-		};
-		g_quadBatch.material.blendMode = BlendMode.NONE;
-		g_quadBatch.material._program = Engine3D.getProgram('simple_instanced2');
-		Jabaku.renderPass(Engine3D, g_mainCamera.get(Vectory.Camera),
-			g_mainLightSettings, [g_quadBatch], undefined, undefined, undefined, params);
-	}
-
 	function animate() {
 		FrameProfiler.startFrame();
 
@@ -141,27 +129,8 @@
 		// render scene
 		//===========================================
 		FrameProfiler.start('RenderAll');
-		Engine3D.setDefaultFrameBuffer();
-		var drawBufferSize = Engine3D.getDrawingBufferSize();
-		Engine3D.setBlendMode(BlendMode.NONE);
-		Engine3D.clear();
 
-		Engine3D.setFrameBuffer('dt_test_fb');
-		Engine3D.setDefaultViewport();
-		Engine3D.clear();
-		drawScene();
-
-		Engine3D.setDefaultFrameBuffer();
-		Engine3D.setDefaultViewport();
-
-		Engine3D.setBlendMode(BlendMode.ALPHA);
-		Engine3D.setProgram(Engine3D.getProgram('copy'), {
-			uTexture: {texture: Engine3D.getTexture('dt_test_fb_rt'), sampler: 0}
-		});
-		Engine3D.renderScreenQuad();
-
-		Engine3D.setViewport({x: 700, y: 0, sx: 324, sy: 324});
-		Engine3D.renderDebugQuad(Engine3D.getTexture('dt_test_fb_dt'), 700, 0, 324, 324);
+		g_mainRenderer.render([g_quadBatch], g_mainCamera.get(Vectory.Camera), g_mainLightSettings);
 
 		FrameProfiler.stop();
 
@@ -310,11 +279,10 @@
 		g_mainViewport = new Jabaku.Viewport();
 
 		g_quadBatch = new Jabaku.QuadBatch(Engine3D);
-		g_quadBatch.material.blendMode = BlendMode.SOLID;
 
 		g_testCoordPlane = g_mainSystem.newEntity('Coordinates Plane');
 
-		var material = new SimpleMaterial(Engine3D, null, new Color(1.0, 1.0, 1.0, 0.5), 0.0);
+		var material = new SimpleMaterial(Engine3D, null, new Color(1.0, 1.0, 1.0, 0.9), 0.0);
 		var quads = new Vectory.Quads(g_quadBatch, material);
 		quads.add(new Vectory.Transform(null, null, new Vecmath.Vector3(10, 10, 10)));
 
@@ -345,6 +313,8 @@
 
 		Engine3D.createFrameBuffer('test_fb', {x: 1024, y: 768});
 		Engine3D.createFrameBufferWithDepthTexture('dt_test_fb', {x: 1024, y: 768});
+
+		g_mainRenderer = new Jabaku.SimpleForwardRenderer(Engine3D, new Color(0.1, 0.1, 0.1, 1.0));
 
 		//======================
 		// debug scene

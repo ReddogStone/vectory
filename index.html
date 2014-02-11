@@ -35,6 +35,7 @@
 
 	<script src="jabaku/renderer/renderer_utils.js" type="text/javascript"></script>
 	<script src="jabaku/renderer/simple_forward_renderer.js" type="text/javascript"></script>
+	<script src="jabaku/renderer/depth_peeling_renderer.js" type="text/javascript"></script>
 
 	<script src="jabaku/entity_system/entity_system.js" type="text/javascript"></script>
 	<script src="jabaku/entity_system/system_base.js" type="text/javascript"></script>
@@ -79,7 +80,6 @@
 	var g_mainLightSettings;
 	var g_mainViewport;
 	var g_quadBatch;
-	var g_frameBuffer;
 	var g_screenQuad;
 	var g_partScreenQuad;
 	var g_mainRenderer;
@@ -250,9 +250,9 @@
 		Engine3D.createProgram('simple_instanced',
 			FileUtils.loadFile('jabaku/shaders/simple_instanced.vshader'),
 			FileUtils.loadFile('jabaku/shaders/simple_instanced.fshader'));
-		Engine3D.createProgram('simple_instanced2',
+		Engine3D.createProgram('simple_instanced_dp',
 			FileUtils.loadFile('jabaku/shaders/simple_instanced.vshader'),
-			FileUtils.loadFile('jabaku/shaders/simple_instanced2.fshader'));
+			FileUtils.loadFile('jabaku/shaders/simple_instanced_dp.fshader'));
 
 		Engine3D.createTextureFromFile('empty_texture', 'jabaku/data/empty_texture.png');
 		Engine3D.createTextureFromFile('line_patterns', 'data/textures/line_patterns.png');
@@ -282,7 +282,7 @@
 
 		g_testCoordPlane = g_mainSystem.newEntity('Coordinates Plane');
 
-		var material = new SimpleMaterial(Engine3D, null, new Color(1.0, 1.0, 1.0, 0.9), 0.0);
+		var material = new SimpleMaterial(Engine3D, null, new Color(1.0, 1.0, 1.0, 0.8), 0.0);
 		var quads = new Vectory.Quads(g_quadBatch, material);
 		quads.add(new Vectory.Transform(null, null, new Vecmath.Vector3(10, 10, 10)));
 
@@ -311,10 +311,7 @@
 			new Vecmath.Vector3(0, 0, 0),
 			new Vecmath.Quaternion().setAxisAngle(new Vecmath.Vector3(0, 1, 0), -0.25 * Math.PI)));
 
-		Engine3D.createFrameBuffer('test_fb', {x: 1024, y: 768});
-		Engine3D.createFrameBufferWithDepthTexture('dt_test_fb', {x: 1024, y: 768});
-
-		g_mainRenderer = new Jabaku.SimpleForwardRenderer(Engine3D, new Color(0.1, 0.1, 0.1, 1.0));
+		g_mainRenderer = new Jabaku.DepthPeelingRenderer(Engine3D, new Color(0.1, 0.1, 0.1, 1.0));
 
 		//======================
 		// debug scene

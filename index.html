@@ -228,10 +228,10 @@
 	function handleKeyDown(event) {
 	}
 	function handleKeyPress(event) {
-		if (event.keyCode == 120) { // F9
+		if (event.which == 65) { // A
 			FrameProfiler.toggle();
 		}
-		if (event.keyCode == 119) { // F8
+		if (event.which == 66) { // B
 			g_mainRenderer.debugRender = !g_mainRenderer.debugRender;
 		}
 	}

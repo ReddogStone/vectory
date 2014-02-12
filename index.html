@@ -241,7 +241,7 @@
 	function start() {
 		g_canvas = document.getElementById('canvas');
 		
-		Engine3D.init(g_canvas);
+		Engine3D.init(g_canvas, false);
 		Engine3D.setClearColor(new Color(0.2, 0.2, 0.2));
 		
 		Engine3D.createProgram('screenspace',

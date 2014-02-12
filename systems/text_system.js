@@ -3,8 +3,9 @@ var Vectory = (function(module) {
 
 	function TextSystem(entitySystem) {
 		Jabaku.SystemBase.call(this, entitySystem, function(entity) {
-			return (entity.contains(Vectory.Transform) && 
-				(entity.contains(Vectory.ScreenText) || entity.contains(Vectory.Text)));
+			return !entity.contains(Vectory.Invisibility) && 
+				entity.contains(Vectory.Transform) &&
+				(entity.contains(Vectory.ScreenText) || entity.contains(Vectory.Text));
 		});
 	}
 	TextSystem.extends(Jabaku.SystemBase, {

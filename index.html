@@ -48,6 +48,7 @@
 	<script src="components/quads.js" type="text/javascript"></script>
 	<script src="components/decoration_quads.js" type="text/javascript"></script>
 	<script src="components/point_light.js" type="text/javascript"></script>
+	<script src="components/invisibility.js" type="text/javascript"></script>
 
 	<script src="systems/transform_system.js" type="text/javascript"></script>
 	<script src="systems/text_system.js" type="text/javascript"></script>
@@ -159,10 +160,12 @@
 		g_profileLines.forEach(function(profileLine, index) {
 			var text = lines[lines.length - 1 - index] || '';
 			if (text) {
-				profileLine.invisible = false;
+				profileLine.remove(Vectory.Invisibility);
 				profileLine.get(Vectory.ScreenText).text = text;
 			} else {
-				profileLine.invisible = true;
+				if (!profileLine.contains(Vectory.Invisibility)) {
+					profileLine.add(new Vectory.Invisibility());
+				}
 				profileLine.get(Vectory.ScreenText).text = '';
 			}
 		});
@@ -342,6 +345,7 @@
 			profileLineLabel.add(
 				new Vectory.ScreenText(Engine3D, '', new Jabaku.Font('Lucida Console', 10), Color.white));
 			profileLineLabel.add(new Vectory.Transform(new Vecmath.Vector3(10, i * 12, 0)));
+			profileLineLabel.add(new Vectory.Invisibility());
 			g_profileLines.push(profileLineLabel);
 		}
 				

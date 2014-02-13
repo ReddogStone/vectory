@@ -1,14 +1,14 @@
 var Vectory = (function(module) {
 	'use strict';
 
-	function Quads() {
+	function Cylinders() {
 		this.ids = [];
 		this.transforms = [];
 	}
-	Quads.type = 'quads';
-	Quads.extends(Object, {
+	Cylinders.type = 'cylinders';
+	Cylinders.extends(Object, {
 		get type() {
-			return Quads.type;
+			return Cylinders.type;
 		},
 		add: function(transform) {
 			this.transforms.push(transform ? transform.clone() : new Vectory.Transform());
@@ -18,6 +18,6 @@ var Vectory = (function(module) {
 		}
 	});
 
-	module.Quads = Quads;
+	module.Cylinders = Cylinders;
 	return module;
 })(Vectory || {});

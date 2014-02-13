@@ -1,8 +1,8 @@
 var Vectory = (function(module) {
 	'use strict';
 
-	function DecorationQuads(batch, material) {
-		Vectory.Quads.call(this, batch, material);
+	function DecorationQuads() {
+		Vectory.Quads.call(this);
 	}
 	DecorationQuads.type = 'decorationQuads';
 	DecorationQuads.extends(Vectory.Quads, {

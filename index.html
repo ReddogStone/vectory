@@ -31,7 +31,6 @@
 	<script src="jabaku/engine/mesh_library.js" type="text/javascript"></script>
 	<script src="jabaku/engine/transform.js" type="text/javascript"></script>
 	<script src="jabaku/engine/render_batch.js" type="text/javascript"></script>
-	<script src="jabaku/engine/quad_batch.js" type="text/javascript"></script>
 
 	<script src="jabaku/renderer/renderer_utils.js" type="text/javascript"></script>
 	<script src="jabaku/renderer/simple_forward_renderer.js" type="text/javascript"></script>
@@ -42,18 +41,24 @@
 
 	<script src="jabaku/profiler/profiler.js" type="text/javascript"></script>
 
+	<script src="utility/quad_batch.js" type="text/javascript"></script>
+	<script src="utility/cylinder_batch.js" type="text/javascript"></script>
+
 	<script src="components/transform.js" type="text/javascript"></script>
 	<script src="components/text.js" type="text/javascript"></script>
 	<script src="components/camera.js" type="text/javascript"></script>
 	<script src="components/quads.js" type="text/javascript"></script>
+	<script src="components/cylinders.js" type="text/javascript"></script>
 	<script src="components/decoration_quads.js" type="text/javascript"></script>
 	<script src="components/point_light.js" type="text/javascript"></script>
 	<script src="components/invisibility.js" type="text/javascript"></script>
+	<script src="components/material.js" type="text/javascript"></script>
+	<script src="components/decoration_material.js" type="text/javascript"></script>
 
 	<script src="systems/transform_system.js" type="text/javascript"></script>
 	<script src="systems/text_system.js" type="text/javascript"></script>
 	<script src="systems/camera_system.js" type="text/javascript"></script>
-	<script src="systems/quads_system.js" type="text/javascript"></script>
+	<script src="systems/geometry_system.js" type="text/javascript"></script>
 	<script src="systems/point_light_system.js" type="text/javascript"></script>
 </head>
 <body>
@@ -75,12 +80,11 @@
 	var g_mainSystem;
 	var g_transformSystem;
 	var g_cameraSystem;
-	var g_quadsSystem;
+	var g_geometrySystem;
 	var g_pointLightSystem;
 	var g_mainCamera;
 	var g_mainLightSettings;
 	var g_mainViewport;
-	var g_quadBatch;
 	var g_screenQuad;
 	var g_partScreenQuad;
 	var g_mainRenderer;
@@ -88,6 +92,9 @@
 	var g_debugSystem;
 	var g_debugTransSystem;
 	var g_debugTextSystem;
+
+	var g_quadBatch;
+	var g_cylinderBatch;
 
 	var g_testCoordPlane;
 
@@ -116,11 +123,12 @@
 
 		g_testCoordPlane.get(Vectory.Transform).rotateX(0.3 * delta);
 		g_testCoordPlane.get(Vectory.Transform).rotateZ(0.3 * delta);
+//		g_testCoordPlane.get(Vectory.Material).luminosity = 1.0 - Math.pow(Math.sin(0.003 * time), 10.0);
 
 		g_transformSystem.update();
 		g_debugTransSystem.update();
 		g_cameraSystem.update();
-		g_quadsSystem.update();
+		g_geometrySystem.update();
 		g_pointLightSystem.update();
 
 		g_mainLightSettings.pointLight1 = g_mainCamera.get(Vectory.PointLight);
@@ -132,7 +140,8 @@
 		//===========================================
 		FrameProfiler.start('RenderAll');
 
-		g_mainRenderer.render([g_quadBatch], g_mainCamera.get(Vectory.Camera), g_mainLightSettings);
+		g_mainRenderer.render([g_quadBatch, g_cylinderBatch], 
+			g_mainCamera.get(Vectory.Camera), g_mainLightSettings);
 
 		FrameProfiler.stop();
 
@@ -311,12 +320,13 @@
 		//======================
 		// main scene
 		//======================
-		g_quadBatch = new Jabaku.QuadBatch(Engine3D);
+		g_quadBatch = new Vectory.QuadBatch(Engine3D);
+		g_cylinderBatch = new Vectory.CylinderBatch(Engine3D);
 
 		g_mainSystem = new Jabaku.EntitySystem();
 		g_transformSystem = new Vectory.TransformSystem(g_mainSystem);
 		g_cameraSystem = new Vectory.CameraSystem(g_mainSystem);
-		g_quadsSystem = new Vectory.QuadsSystem(g_mainSystem, g_quadBatch);
+		g_geometrySystem = new Vectory.GeometrySystem(g_mainSystem, g_quadBatch, g_cylinderBatch);
 		g_pointLightSystem = new Vectory.PointLightSystem(g_mainSystem);
 
 		g_mainCamera = g_mainSystem.newEntity('Main Camera');
@@ -332,12 +342,12 @@
 
 		g_testCoordPlane = g_mainSystem.newEntity('Coordinates Plane');
 
-		var material = new SimpleMaterial(Engine3D, null, new Color(0.0, 0.3, 0.6, 0.7), 0.0);
-		var quads = new Vectory.Quads(material);
+		var material = new Vectory.Material(new Color(0.0, 0.3, 0.6, 0.7), 0.0);
+		var quads = new Vectory.Quads();
 		quads.add(new Jabaku.Transform(null, null, new Vecmath.Vector3(10, 10, 10)));
 
-		var decorMaterial = new SimpleMaterial(Engine3D, null, new Color(1.0, 0.0, 0.0, 1.0), 0.0);
-		var decorQuads = new Vectory.DecorationQuads(decorMaterial);
+		var decorMaterial = new Vectory.DecorationMaterial(new Color(1.0, 0.0, 0.0, 1.0), 0.0);
+		var decorQuads = new Vectory.DecorationQuads();
 		for (var i = 0; i < 11; ++i) {
 			var width = ((i % 5) == 0) ? 0.06 : 0.03;
 			decorQuads.add(new Jabaku.Transform(
@@ -346,29 +356,41 @@
 				new Vecmath.Vector3(0, i - 5, 0.01), null, new Vecmath.Vector3(10.1, width, 1)));
 		}
 
+		g_testCoordPlane.add(material);
 		g_testCoordPlane.add(quads);
+		g_testCoordPlane.add(decorMaterial);
 		g_testCoordPlane.add(decorQuads);
 		g_testCoordPlane.add(new Vectory.Transform(
 			new Vecmath.Vector3(0, 0, 0),
 			new Vecmath.Quaternion().setAxisAngle(new Vecmath.Vector3(0, 1, 0), 0.25 * Math.PI)));
 
-		var material = new SimpleMaterial(Engine3D, null, new Color(0.3, 0.6, 0.0, 0.7), 0.0);
 		var secondPlane = g_mainSystem.newEntity('Second Plane');
-		var quads = new Vectory.Quads(material);
+		var quads = new Vectory.Quads();
 		quads.add(new Jabaku.Transform(null, null, new Vecmath.Vector3(10, 10, 10)));
+		secondPlane.add(material);
 		secondPlane.add(quads);
 		secondPlane.add(new Vectory.Transform(
 			new Vecmath.Vector3(0, 0, 0),
 			new Vecmath.Quaternion().setAxisAngle(new Vecmath.Vector3(0, 1, 0), -0.25 * Math.PI)));
 
-		var material = new SimpleMaterial(Engine3D, null, new Color(0.6, 0.0, 0.3, 0.7), 0.0);
 		var thirdPlane = g_mainSystem.newEntity('Third Plane');
-		var quads = new Vectory.Quads(material);
+		var quads = new Vectory.Quads();
 		quads.add(new Jabaku.Transform(null, null, new Vecmath.Vector3(10, 10, 10)));
+		thirdPlane.add(material);
 		thirdPlane.add(quads);
 		thirdPlane.add(new Vectory.Transform(
 			new Vecmath.Vector3(0, 0, 0),
 			new Vecmath.Quaternion().setAxisAngle(new Vecmath.Vector3(0, 1, 0), 0 * Math.PI)));
+
+		var material = new Vectory.Material(new Color(1.0, 0.0, 0.0, 1.0), 0.0);
+		var line = g_mainSystem.newEntity('Line');
+		var cylinders = new Vectory.Cylinders();
+		cylinders.add(new Jabaku.Transform(null, null, new Vecmath.Vector3(0.1, 0.1, 20)));
+		line.add(material);
+		line.add(cylinders);
+		line.add(new Vectory.Transform(
+			new Vecmath.Vector3(0, 1, 1),
+			new Vecmath.Quaternion().setAxisAngle(new Vecmath.Vector3(0, 1, 0), -0.5 * Math.PI)));
 
 		g_mainRenderer = new Jabaku.DepthPeelingRenderer(Engine3D, new Color(0.2, 0.2, 0.2, 1.0));
 

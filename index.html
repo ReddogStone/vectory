@@ -311,19 +311,21 @@
 			new Vecmath.Vector3(0, 0, 0),
 			new Vecmath.Quaternion().setAxisAngle(new Vecmath.Vector3(0, 1, 0), 0.25 * Math.PI)));
 
+		var material = new SimpleMaterial(Engine3D, null, new Color(0.3, 0.6, 0.0, 0.7), 0.0);
 		var secondPlane = g_mainSystem.newEntity('Second Plane');
 		var quads = new Vectory.Quads(material);
-		quads.add(new Vectory.Transform(null, null, new Vecmath.Vector3(10, 10, 10)));
+		quads.add(new Jabaku.Transform(null, null, new Vecmath.Vector3(10, 10, 10)));
 		secondPlane.add(quads);
-		secondPlane.add(new Jabaku.Transform(
+		secondPlane.add(new Vectory.Transform(
 			new Vecmath.Vector3(0, 0, 0),
 			new Vecmath.Quaternion().setAxisAngle(new Vecmath.Vector3(0, 1, 0), -0.25 * Math.PI)));
 
-		var thirdPlane = g_mainSystem.newEntity('Second Plane');
+		var material = new SimpleMaterial(Engine3D, null, new Color(0.6, 0.0, 0.3, 0.7), 0.0);
+		var thirdPlane = g_mainSystem.newEntity('Third Plane');
 		var quads = new Vectory.Quads(material);
-		quads.add(new Vectory.Transform(null, null, new Vecmath.Vector3(10, 10, 10)));
+		quads.add(new Jabaku.Transform(null, null, new Vecmath.Vector3(10, 10, 10)));
 		thirdPlane.add(quads);
-		thirdPlane.add(new Jabaku.Transform(
+		thirdPlane.add(new Vectory.Transform(
 			new Vecmath.Vector3(0, 0, 0),
 			new Vecmath.Quaternion().setAxisAngle(new Vecmath.Vector3(0, 1, 0), 0 * Math.PI)));
 

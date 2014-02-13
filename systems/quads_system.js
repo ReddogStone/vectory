@@ -30,7 +30,7 @@ var Vectory = (function(module) {
 				if (transform) {
 					transform.calcTransform(globalTrans);
 
-					if (id) {
+					if (id !== undefined) {
 						this._batch.set(id, transform.global, material.color, 0, material.luminosity);
 					} else {
 						quads.ids[quadIdx] = 

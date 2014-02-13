@@ -12,6 +12,14 @@ var Vectory = (function(module) {
 			Jabaku.SystemBase.prototype.onComponentAdded.call(this, entity, component);
 		},
 		onComponentRemoved: function(entity, component) {
+			if ((component instanceof Vectory.Quads) || (component instanceof Vectory.DecorationQuads)) {
+				for (var i = 0; i < component.ids.length; ++i) {
+					var id = component.ids[i];
+					this._batch.remove(id);
+				}
+				component.ids.clear();
+			}
+
 			Jabaku.SystemBase.prototype.onComponentRemoved.call(this, entity, component);
 		},
 		_updateOne: function(quads, trans) {

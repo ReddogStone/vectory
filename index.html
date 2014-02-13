@@ -270,10 +270,12 @@
 		//======================
 		// main scene
 		//======================
+		g_quadBatch = new Jabaku.QuadBatch(Engine3D);
+
 		g_mainSystem = new Jabaku.EntitySystem();
 		g_transformSystem = new Vectory.TransformSystem(g_mainSystem);
 		g_cameraSystem = new Vectory.CameraSystem(g_mainSystem);
-		g_quadsSystem = new Vectory.QuadsSystem(g_mainSystem);
+		g_quadsSystem = new Vectory.QuadsSystem(g_mainSystem, g_quadBatch);
 		g_pointLightSystem = new Vectory.PointLightSystem(g_mainSystem);
 
 		g_mainCamera = g_mainSystem.newEntity('Main Camera');
@@ -287,21 +289,19 @@
 		g_mainLightSettings = new Jabaku.ForwardLightSettings();
 		g_mainViewport = new Jabaku.Viewport();
 
-		g_quadBatch = new Jabaku.QuadBatch(Engine3D);
-
 		g_testCoordPlane = g_mainSystem.newEntity('Coordinates Plane');
 
 		var material = new SimpleMaterial(Engine3D, null, new Color(0.0, 0.3, 0.6, 0.7), 0.0);
-		var quads = new Vectory.Quads(g_quadBatch, material);
-		quads.add(new Vectory.Transform(null, null, new Vecmath.Vector3(10, 10, 10)));
+		var quads = new Vectory.Quads(material);
+		quads.add(new Jabaku.Transform(null, null, new Vecmath.Vector3(10, 10, 10)));
 
 		var decorMaterial = new SimpleMaterial(Engine3D, null, new Color(1.0, 0.0, 0.0, 1.0), 0.0);
-		var decorQuads = new Vectory.DecorationQuads(g_quadBatch, decorMaterial);
+		var decorQuads = new Vectory.DecorationQuads(decorMaterial);
 		for (var i = 0; i < 11; ++i) {
 			var width = ((i % 5) == 0) ? 0.06 : 0.03;
-			decorQuads.add(new Vectory.Transform(
+			decorQuads.add(new Jabaku.Transform(
 				new Vecmath.Vector3(i - 5, 0, 0.01), null, new Vecmath.Vector3(width, 10.1, 1)));
-			decorQuads.add(new Vectory.Transform(
+			decorQuads.add(new Jabaku.Transform(
 				new Vecmath.Vector3(0, i - 5, 0.01), null, new Vecmath.Vector3(10.1, width, 1)));
 		}
 
@@ -312,18 +312,18 @@
 			new Vecmath.Quaternion().setAxisAngle(new Vecmath.Vector3(0, 1, 0), 0.25 * Math.PI)));
 
 		var secondPlane = g_mainSystem.newEntity('Second Plane');
-		var quads = new Vectory.Quads(g_quadBatch, material);
+		var quads = new Vectory.Quads(material);
 		quads.add(new Vectory.Transform(null, null, new Vecmath.Vector3(10, 10, 10)));
 		secondPlane.add(quads);
-		secondPlane.add(new Vectory.Transform(
+		secondPlane.add(new Jabaku.Transform(
 			new Vecmath.Vector3(0, 0, 0),
 			new Vecmath.Quaternion().setAxisAngle(new Vecmath.Vector3(0, 1, 0), -0.25 * Math.PI)));
 
 		var thirdPlane = g_mainSystem.newEntity('Second Plane');
-		var quads = new Vectory.Quads(g_quadBatch, material);
+		var quads = new Vectory.Quads(material);
 		quads.add(new Vectory.Transform(null, null, new Vecmath.Vector3(10, 10, 10)));
 		thirdPlane.add(quads);
-		thirdPlane.add(new Vectory.Transform(
+		thirdPlane.add(new Jabaku.Transform(
 			new Vecmath.Vector3(0, 0, 0),
 			new Vecmath.Quaternion().setAxisAngle(new Vecmath.Vector3(0, 1, 0), 0 * Math.PI)));
 

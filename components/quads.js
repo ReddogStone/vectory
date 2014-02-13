@@ -1,15 +1,14 @@
 var Vectory = (function(module) {
 	'use strict';
 
-	function Quad(id, transform) {
-		this.id = id;
+	function Quad(transform) {
 		this.transform = transform;
 	}
 
-	function Quads(batch, material) {
-		this.batch = batch;
+	function Quads(material) {
 		this.material = material;
-		this.quads = [];
+		this.ids = [];
+		this.transforms = [];
 	}
 	Quads.type = 'quads';
 	Quads.extends(Object, {
@@ -17,14 +16,10 @@ var Vectory = (function(module) {
 			return Quads.type;
 		},
 		add: function(transform) {
-			var id = this.batch.add(transform.global, Color.green, 0, 0);
-			this.quads.push(new Quad(id, transform));
+			this.transforms.push(transform ? transform.clone() : new Vectory.Transform());
 		},
 		clear: function() {
-			for (var i = 0; i < this.quads.length; ++i) {
-				this.batch.remove(this.quads[i].id);
-			}
-			this.quads.clear();
+			this.transforms.clear();
 		}
 	});
 

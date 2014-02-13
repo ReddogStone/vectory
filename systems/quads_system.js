@@ -1,12 +1,19 @@
 var Vectory = (function(module) {
 	'use strict';
 
-	function QuadsSystem(entitySystem) {
+	function QuadsSystem(entitySystem, quadBatch) {
 		Jabaku.SystemBase.call(this, entitySystem, function(entity) {
 			return entity.contains(Vectory.Quads) || entity.contains(Vectory.DecorationQuads);
 		});
+		this._batch = quadBatch;
 	}
 	QuadsSystem.extends(Jabaku.SystemBase, {
+		onComponentAdded: function(entity, component) {
+			Jabaku.SystemBase.prototype.onComponentAdded.call(this, entity, component);
+		},
+		onComponentRemoved: function(entity, component) {
+			Jabaku.SystemBase.prototype.onComponentRemoved.call(this, entity, component);
+		},
 		_updateOne: function(quads, trans) {
 			var material = quads.material;
 
@@ -15,11 +22,24 @@ var Vectory = (function(module) {
 				globalTrans.copy(trans.global);
 			}
 
-			for (var quadIdx = 0; quadIdx < quads.quads.length; ++quadIdx) {
-				var quad = quads.quads[quadIdx];
-				quad.transform.calcTransform(globalTrans);
+			var l = Math.max(quads.transforms.length, quads.ids.length);
+			for (var quadIdx = 0; quadIdx < l; ++quadIdx) {
+				var id = quads.ids[quadIdx];
+				var transform = quads.transforms[quadIdx];
 
-				quads.batch.set(quad.id, quad.transform.global, material.color, 0, material.luminosity);
+				if (transform) {
+					transform.calcTransform(globalTrans);
+
+					if (id) {
+						this._batch.set(id, transform.global, material.color, 0, material.luminosity);
+					} else {
+						quads.ids[quadIdx] = 
+							this._batch.add(transform.global, material.color, 0, material.luminosity);
+					}
+				} else {
+					delete quads[ids];
+					this._batch.remove(id);
+				}
 			}
 		},
 		update: function() {

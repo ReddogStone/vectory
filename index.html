@@ -113,8 +113,6 @@
 		// Update
 		//===========================================
 		FrameProfiler.start('UpdateAll');
-		g_mainCamera.get(Vectory.Transform).
-			rotateAroundTargetHoriz(g_mainCamera.get(Vectory.Camera).target, delta * 0.5);
 
 		g_testCoordPlane.get(Vectory.Transform).rotateX(0.3 * delta);
 		g_testCoordPlane.get(Vectory.Transform).rotateZ(0.3 * delta);
@@ -215,6 +213,9 @@
 
 	function handleMouseDown(event) {
 		handleMouseEvent(event, true, 'mouseDown');
+
+		g_drag.x = g_mouse.x;
+		g_drag.y = g_mouse.y;
 	}
 
 	function handleMouseUp(event) {
@@ -223,6 +224,38 @@
 
 	function handleMouseMove(event) {
 		handleMouseEvent(event, g_mouse.down, 'mouseMove');
+
+		if (g_mouse.down) {
+			var dx = g_drag.x - g_mouse.x;
+			var dy = g_drag.y - g_mouse.y;
+
+			var trans = g_mainCamera.get(Vectory.Transform);
+			var target = g_mainCamera.get(Vectory.Camera).target;
+			trans.rotateAroundTargetHoriz(target, 0.01 * dx);
+			trans.rotateAroundTargetVert(target, 0.01 * dy);
+
+			g_drag.x = g_mouse.x;
+			g_drag.y = g_mouse.y;
+		}
+	}
+
+	var wheelDistance = function(evt) {
+		if (!evt) evt = event;
+			var w = evt.wheelDelta, d = evt.detail;
+			if (d) {
+				if (w) {
+					return w / d / 40 * ((d > 0) ? 1 : -1); // Opera
+				} else {
+					return -d/3; // Firefox;
+				}
+			} else {
+				return w/120; // IE/Safari/Chrome
+			}
+	};		
+
+	function handleMouseWheel(e) {
+		var delta = -wheelDistance(e) * 0.05;
+		g_mainCamera.get(Vectory.Transform).moveToTarget(g_mainCamera.get(Vectory.Camera).target, 1 + delta);
 	}
 	
 	function handleKeyDown(event) {
@@ -288,7 +321,7 @@
 
 		g_mainCamera = g_mainSystem.newEntity('Main Camera');
 		var cam = new Vectory.Camera();
-		cam.makePerspective(0.5 * Math.PI, g_canvas.clientWidth / g_canvas.clientHeight, 2, 20);
+		cam.makePerspective(0.5 * Math.PI, g_canvas.clientWidth / g_canvas.clientHeight, 0.5, 100);
 		cam.target = new Vecmath.Vector3(0, 0, 0);
 		g_mainCamera.add(cam);
 		g_mainCamera.add(new Vectory.Transform(new Vecmath.Vector3(0, 0, 10)));
@@ -337,7 +370,7 @@
 			new Vecmath.Vector3(0, 0, 0),
 			new Vecmath.Quaternion().setAxisAngle(new Vecmath.Vector3(0, 1, 0), 0 * Math.PI)));
 
-		g_mainRenderer = new Jabaku.DepthPeelingRenderer(Engine3D, new Color(0.1, 0.1, 0.1, 1.0));
+		g_mainRenderer = new Jabaku.DepthPeelingRenderer(Engine3D, new Color(0.2, 0.2, 0.2, 1.0));
 
 		//======================
 		// debug scene
@@ -370,6 +403,13 @@
 		document.onkeydown = handleKeyDown;
 		document.onkeypress = handleKeyPress;
 		document.onkeyup = handleKeyUp;
+
+		if (document.addEventListener) {
+			// IE9, Chrome, Safari, Opera
+			document.addEventListener("mousewheel", handleMouseWheel, false);
+			// Firefox
+			document.addEventListener("DOMMouseScroll", handleMouseWheel, false);
+		}
 		
 		requestAnimFrame(function() { animate(); });
 	}

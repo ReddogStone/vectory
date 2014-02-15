@@ -1,8 +1,8 @@
 var Vectory = (function(module) {
 	'use strict';
 
-	function DecorationMaterial(color, luminosity) {
-		Vectory.Material.call(this, color, luminosity);
+	function DecorationMaterial(color, luminosity, diffuse, specular) {
+		Vectory.Material.call(this, color, luminosity, diffuse, specular);
 	}
 	DecorationMaterial.type = 'decorationMaterial';
 	DecorationMaterial.extends(Vectory.Material, {

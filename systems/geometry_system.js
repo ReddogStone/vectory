@@ -3,12 +3,13 @@ var Vectory = (function(module) {
 
 	function GeometrySystem(entitySystem, quadBatch, cylinderBatch) {
 		Jabaku.SystemBase.call(this, entitySystem, function(entity) {
-			return ( entity.contains(Vectory.Material) && 
+			return (!entity.contains(Vectory.Invisibility)) &&
+				( entity.contains(Vectory.Material) && 
 					(entity.contains(Vectory.Quads) || 
 					entity.contains(Vectory.Cylinders)) ) ||
 				( entity.contains(Vectory.DecorationMaterial) && 
-					(entity.contains(Vectory.DecorationQuads)/* || 
-					entity.contains(Vectory.DecorationCylinders)*/) );
+					(entity.contains(Vectory.DecorationQuads) || 
+					entity.contains(Vectory.DecorationCylinders)) );
 		});
 		this._quadBatch = quadBatch;
 		this._cylinderBatch = cylinderBatch;
@@ -43,10 +44,19 @@ var Vectory = (function(module) {
 					transform.calcTransform(globalTrans);
 
 					if (id !== undefined) {
-						batch.set(id, transform.global, material.color, 0, material.luminosity);
+						batch.set(id, 
+							transform.global, 
+							material.color, 
+							material.luminosity,
+							material.diffuse,
+							material.specular);
 					} else {
 						geometries.ids[quadIdx] = 
-							batch.add(transform.global, material.color, 0, material.luminosity);
+							batch.add(transform.global,
+								material.color,
+								material.luminosity,
+								material.diffuse,
+								material.specular);
 					}
 				} else {
 					delete geometries[ids];
@@ -60,6 +70,7 @@ var Vectory = (function(module) {
 				var quads = entity.get(Vectory.Quads);
 				var decorQuads = entity.get(Vectory.DecorationQuads);
 				var cylinders = entity.get(Vectory.Cylinders);
+				var decorCylinders = entity.get(Vectory.DecorationCylinders);
 				var trans = entity.get(Vectory.Transform);
 				var material = entity.get(Vectory.Material);
 				var decorMaterial = entity.get(Vectory.DecorationMaterial);
@@ -72,6 +83,9 @@ var Vectory = (function(module) {
 				}
 				if (decorQuads !== undefined) {
 					this._updateOne(this._quadBatch, decorQuads, trans, decorMaterial);
+				}
+				if (decorCylinders !== undefined) {
+					this._updateOne(this._cylinderBatch, decorCylinders, trans, decorMaterial);
 				}
 			}
 		}

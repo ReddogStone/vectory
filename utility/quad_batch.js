@@ -10,7 +10,7 @@ var Vectory = (function(module) {
 			"aWorldZ": { "components": 4, "type": "FLOAT", "normalized": false },
 			"aWorldW": { "components": 4, "type": "FLOAT", "normalized": false },
 			"aColor": { "components": 4, "type": "FLOAT", "normalized": false },
-			"aIndexLum": { "components": 2, "type": "FLOAT", "normalized": false }
+			"aLumDiffSpec": { "components": 3, "type": "FLOAT", "normalized": false }
 		};
 		
 		this._batch = new Jabaku.RenderBatch(engine, mesh, instanceDataDesc);
@@ -21,8 +21,8 @@ var Vectory = (function(module) {
 		this.material = new SimpleInstMaterial(engine, texture);
 	}
 	QuadBatch.extends(Object, {
-		add: function(transform, color, atlasIndex, luminosity) {
-			var data = transform.toArray().concat(color.toArray4()).concat([atlasIndex, luminosity]);
+		add: function(transform, color, luminosity, diffuse, specular) {
+			var data = transform.toArray().concat(color.toArray4()).concat([luminosity, diffuse, specular]);
 			return this._batch.addSingleInstance(data);
 		},
 		remove: function(id) {
@@ -33,12 +33,13 @@ var Vectory = (function(module) {
 			return {
 				transform: new Vecmath.Matrix4().fromArray(data),
 				color: new Color(data[16], data[17], data[18], data[19]),
-				atlasIndex: data[20],
-				luminosity: data[21]
+				luminosity: data[20],
+				diffuse: data[21],
+				specular: data[22]
 			};
 		},
-		set: function(id, transform, color, atlasIndex, luminosity) {
-			var data = transform.toArray().concat(color.toArray4()).concat([atlasIndex, luminosity]);
+		set: function(id, transform, color, luminosity, diffuse, specular) {
+			var data = transform.toArray().concat(color.toArray4()).concat([luminosity, diffuse, specular]);
 			this._batch.setSingleInstance(id, data);
 		},
 		setTransform: function(id, value) {
@@ -68,11 +69,14 @@ var Vectory = (function(module) {
 				data[16] = value.red; data[17] = value.green; data[18] = value.blue; data[19] = value.alpha;
 			});
 		},
-		setAtlasIndex: function(id, value) {
+		setLuminosity: function(id, value) {
 			this._batch.setComponent(id, function(data) { data[20] = value; });
 		},
-		setLuminosity: function(id, value) {
+		setDiffuse: function(id, value) {
 			this._batch.setComponent(id, function(data) { data[21] = value; });
+		},
+		setSpecular: function(id, value) {
+			this._batch.setComponent(id, function(data) { data[22] = value; });
 		},
 
 		// Renderable interface

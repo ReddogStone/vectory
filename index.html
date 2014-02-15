@@ -346,7 +346,7 @@
 		var quads = new Vectory.Quads();
 		quads.add(new Jabaku.Transform(null, null, new Vecmath.Vector3(10, 10, 10)));
 
-		var decorMaterial = new Vectory.DecorationMaterial(new Color(1.0, 1.0, 1.0, 1.0), 1.0, 0.0, 0.0);
+		var decorMaterial = new Vectory.DecorationMaterial(new Color(1.0, 1.0, 1.0, 1.0), 0.7, 0.0, 0.0);
 		var decor = new Vectory.DecorationCylinders();
 		for (var i = 0; i < 11; ++i) {
 			var width = ((i % 5) == 0) ? 0.06 : 0.03;
@@ -368,7 +368,7 @@
 			new Vecmath.Vector3(0, 0, 0),
 			new Vecmath.Quaternion().setAxisAngle(new Vecmath.Vector3(0, 1, 0), 0.25 * Math.PI)));
 
-		var material = new Vectory.Material(new Color(0.0, 0.3, 0.6, 0.7), 0.0, 1.0, 1.0);
+		var material = new Vectory.Material(new Color(0.0, 0.3, 0.6, 0.8), 0.0, 1.0, 1.0);
 		var secondPlane = g_mainSystem.newEntity('Second Plane');
 		var quads = new Vectory.Quads();
 		quads.add(new Jabaku.Transform(null, null, new Vecmath.Vector3(10, 10, 10)));
@@ -397,7 +397,7 @@
 			new Vecmath.Vector3(0, 1, 1),
 			new Vecmath.Quaternion().setAxisAngle(new Vecmath.Vector3(0, 1, 0), -0.5 * Math.PI)));
 
-		var material = new Vectory.Material(new Color(0.0, 0.2, 0.8, 0.7), 0.0, 1.0, 0.0);
+		var material = new Vectory.Material(new Color(0.0, 0.2, 0.8, 0.8), 0.0, 1.0, 0.0);
 		var sphere = g_mainSystem.newEntity('Sphere');
 		var spheres = new Vectory.Spheres();
 		spheres.add(new Jabaku.Transform(null, null, new Vecmath.Vector3(3, 3, 3)));
@@ -407,7 +407,7 @@
 			new Vecmath.Vector3(3, 0, 0),
 			new Vecmath.Quaternion().setAxisAngle(new Vecmath.Vector3(0, 1, 0), 0.0 * Math.PI)));
 
-		var material = new Vectory.Material(new Color(0.7, 0.6, 0.0, 0.7), 0.0, 1.0, 0.0);
+		var material = new Vectory.Material(new Color(0.7, 0.6, 0.0, 0.8), 0.0, 1.0, 0.0);
 		var sphere = g_mainSystem.newEntity('Sphere');
 		var spheres = new Vectory.Spheres();
 		spheres.add(new Jabaku.Transform(null, null, new Vecmath.Vector3(3, 3, 3)));

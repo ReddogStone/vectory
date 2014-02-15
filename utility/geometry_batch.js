@@ -96,7 +96,7 @@ var Vectory = (function(module) {
 	CylinderBatch.extends(GeometryBatch);
 
 	function SphereBatch(engine, textureId) {
-		GeometryBatch.call(this, engine, Jabaku.createSphereData(5));
+		GeometryBatch.call(this, engine, Jabaku.createSphereData(8));
 	}
 	SphereBatch.extends(GeometryBatch);
 

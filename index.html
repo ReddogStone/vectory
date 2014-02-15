@@ -397,6 +397,26 @@
 			new Vecmath.Vector3(0, 1, 1),
 			new Vecmath.Quaternion().setAxisAngle(new Vecmath.Vector3(0, 1, 0), -0.5 * Math.PI)));
 
+		var material = new Vectory.Material(new Color(0.0, 0.2, 0.8, 0.7), 0.0, 1.0, 0.0);
+		var sphere = g_mainSystem.newEntity('Sphere');
+		var spheres = new Vectory.Spheres();
+		spheres.add(new Jabaku.Transform(null, null, new Vecmath.Vector3(3, 3, 3)));
+		sphere.add(material);
+		sphere.add(spheres);
+		sphere.add(new Vectory.Transform(
+			new Vecmath.Vector3(3, 0, 0),
+			new Vecmath.Quaternion().setAxisAngle(new Vecmath.Vector3(0, 1, 0), 0.0 * Math.PI)));
+
+		var material = new Vectory.Material(new Color(0.7, 0.6, 0.0, 0.7), 0.0, 1.0, 0.0);
+		var sphere = g_mainSystem.newEntity('Sphere');
+		var spheres = new Vectory.Spheres();
+		spheres.add(new Jabaku.Transform(null, null, new Vecmath.Vector3(3, 3, 3)));
+		sphere.add(material);
+		sphere.add(spheres);
+		sphere.add(new Vectory.Transform(
+			new Vecmath.Vector3(-3, 0, 0),
+			new Vecmath.Quaternion().setAxisAngle(new Vecmath.Vector3(0, 1, 0), 0.0 * Math.PI)));
+
 		g_mainRenderer = new Jabaku.DepthPeelingRenderer(Engine3D, new Color(0.2, 0.2, 0.2, 1.0));
 
 		//======================

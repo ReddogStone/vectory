@@ -1,18 +1,21 @@
 var Vectory = (function(module) {
 	'use strict';
 
-	function GeometrySystem(entitySystem, quadBatch, cylinderBatch) {
+	function GeometrySystem(entitySystem, quadBatch, cylinderBatch, sphereBatch) {
 		Jabaku.SystemBase.call(this, entitySystem, function(entity) {
 			return (!entity.contains(Vectory.Invisibility)) &&
 				( entity.contains(Vectory.Material) && 
 					(entity.contains(Vectory.Quads) || 
-					entity.contains(Vectory.Cylinders)) ) ||
+					entity.contains(Vectory.Cylinders) ||
+					entity.contains(Vectory.Spheres)) ) ||
 				( entity.contains(Vectory.DecorationMaterial) && 
 					(entity.contains(Vectory.DecorationQuads) || 
-					entity.contains(Vectory.DecorationCylinders)) );
+					entity.contains(Vectory.DecorationCylinders) || 
+					entity.contains(Vectory.DecorationSpheres)) );
 		});
 		this._quadBatch = quadBatch;
 		this._cylinderBatch = cylinderBatch;
+		this._sphereBatch = sphereBatch;
 	}
 	GeometrySystem.extends(Jabaku.SystemBase, {
 		onComponentAdded: function(entity, component) {
@@ -71,6 +74,8 @@ var Vectory = (function(module) {
 				var decorQuads = entity.get(Vectory.DecorationQuads);
 				var cylinders = entity.get(Vectory.Cylinders);
 				var decorCylinders = entity.get(Vectory.DecorationCylinders);
+				var spheres = entity.get(Vectory.Spheres);
+				var decorSpheres = entity.get(Vectory.DecorationSpheres);
 				var trans = entity.get(Vectory.Transform);
 				var material = entity.get(Vectory.Material);
 				var decorMaterial = entity.get(Vectory.DecorationMaterial);
@@ -81,11 +86,17 @@ var Vectory = (function(module) {
 				if (cylinders !== undefined) {
 					this._updateOne(this._cylinderBatch, cylinders, trans, material);
 				}
+				if (spheres !== undefined) {
+					this._updateOne(this._sphereBatch, spheres, trans, material);
+				}
 				if (decorQuads !== undefined) {
 					this._updateOne(this._quadBatch, decorQuads, trans, decorMaterial);
 				}
 				if (decorCylinders !== undefined) {
 					this._updateOne(this._cylinderBatch, decorCylinders, trans, decorMaterial);
+				}
+				if (decorSpheres !== undefined) {
+					this._updateOne(this._sphereBatch, decorSpheres, trans, decorMaterial);
 				}
 			}
 		}

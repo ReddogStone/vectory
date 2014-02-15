@@ -1,8 +1,8 @@
 var Vectory = (function(module) {
 	'use strict';
 
-	function CylinderBatch(engine, textureId) {
-		var mesh = Jabaku.createCylinderData(11);
+	function GeometryBatch(engine, meshData, instanceDesc) {
+		var mesh = Jabaku.createQuadData();
 
 		var instanceDataDesc = {
 			"aWorldX": { "components": 4, "type": "FLOAT", "normalized": false },
@@ -13,14 +13,10 @@ var Vectory = (function(module) {
 			"aLumDiffSpec": { "components": 3, "type": "FLOAT", "normalized": false }
 		};
 		
-		this._batch = new Jabaku.RenderBatch(engine, mesh, instanceDataDesc);
-		var texture;
-		if (textureId !== undefined) {
-			texture = engine.getTexture(textureId);
-		}
-		this.material = new SimpleInstMaterial(engine, texture);
+		this._batch = new Jabaku.RenderBatch(engine, meshData, instanceDataDesc);
+		this.material = new SimpleInstMaterial(engine);
 	}
-	CylinderBatch.extends(Object, {
+	GeometryBatch.extends(Object, {
 		add: function(transform, color, luminosity, diffuse, specular) {
 			var data = transform.toArray().concat(color.toArray4()).concat([luminosity, diffuse, specular]);
 			return this._batch.addSingleInstance(data);
@@ -91,6 +87,31 @@ var Vectory = (function(module) {
 		}
 	});
 
+	function QuadBatch(engine) {
+		GeometryBatch.call(this, engine, Jabaku.createQuadData(), {
+			"aWorldX": { "components": 4, "type": "FLOAT", "normalized": false },
+			"aWorldY": { "components": 4, "type": "FLOAT", "normalized": false },
+			"aWorldZ": { "components": 4, "type": "FLOAT", "normalized": false },
+			"aWorldW": { "components": 4, "type": "FLOAT", "normalized": false },
+			"aColor": { "components": 4, "type": "FLOAT", "normalized": false },
+			"aLumDiffSpec": { "components": 3, "type": "FLOAT", "normalized": false }
+		});
+	}
+	QuadBatch.extends(GeometryBatch);
+
+	function CylinderBatch(engine, textureId) {
+		GeometryBatch.call(this, engine, Jabaku.createCylinderData(11), {
+			"aWorldX": { "components": 4, "type": "FLOAT", "normalized": false },
+			"aWorldY": { "components": 4, "type": "FLOAT", "normalized": false },
+			"aWorldZ": { "components": 4, "type": "FLOAT", "normalized": false },
+			"aWorldW": { "components": 4, "type": "FLOAT", "normalized": false },
+			"aColor": { "components": 4, "type": "FLOAT", "normalized": false },
+			"aLumDiffSpec": { "components": 3, "type": "FLOAT", "normalized": false }
+		});
+	}
+	CylinderBatch.extends(GeometryBatch);
+
+	module.QuadBatch = QuadBatch;
 	module.CylinderBatch = CylinderBatch;
 	return module;
 })(Vectory || {});

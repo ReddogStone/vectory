@@ -98,9 +98,10 @@ var Vectory = (function(module) {
 	function SphereBatch(engine, textureId) {
 		GeometryBatch.call(this, engine, Jabaku.createSphereData(5));
 	}
-	CylinderBatch.extends(GeometryBatch);
+	SphereBatch.extends(GeometryBatch);
 
 	module.QuadBatch = QuadBatch;
 	module.CylinderBatch = CylinderBatch;
+	module.SphereBatch = SphereBatch;
 	return module;
 })(Vectory || {});

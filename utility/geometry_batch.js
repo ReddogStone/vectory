@@ -1,9 +1,7 @@
 var Vectory = (function(module) {
 	'use strict';
 
-	function GeometryBatch(engine, meshData, instanceDesc) {
-		var mesh = Jabaku.createQuadData();
-
+	function GeometryBatch(engine, meshData) {
 		var instanceDataDesc = {
 			"aWorldX": { "components": 4, "type": "FLOAT", "normalized": false },
 			"aWorldY": { "components": 4, "type": "FLOAT", "normalized": false },
@@ -88,26 +86,17 @@ var Vectory = (function(module) {
 	});
 
 	function QuadBatch(engine) {
-		GeometryBatch.call(this, engine, Jabaku.createQuadData(), {
-			"aWorldX": { "components": 4, "type": "FLOAT", "normalized": false },
-			"aWorldY": { "components": 4, "type": "FLOAT", "normalized": false },
-			"aWorldZ": { "components": 4, "type": "FLOAT", "normalized": false },
-			"aWorldW": { "components": 4, "type": "FLOAT", "normalized": false },
-			"aColor": { "components": 4, "type": "FLOAT", "normalized": false },
-			"aLumDiffSpec": { "components": 3, "type": "FLOAT", "normalized": false }
-		});
+		GeometryBatch.call(this, engine, Jabaku.createQuadData());
 	}
 	QuadBatch.extends(GeometryBatch);
 
 	function CylinderBatch(engine, textureId) {
-		GeometryBatch.call(this, engine, Jabaku.createCylinderData(11), {
-			"aWorldX": { "components": 4, "type": "FLOAT", "normalized": false },
-			"aWorldY": { "components": 4, "type": "FLOAT", "normalized": false },
-			"aWorldZ": { "components": 4, "type": "FLOAT", "normalized": false },
-			"aWorldW": { "components": 4, "type": "FLOAT", "normalized": false },
-			"aColor": { "components": 4, "type": "FLOAT", "normalized": false },
-			"aLumDiffSpec": { "components": 3, "type": "FLOAT", "normalized": false }
-		});
+		GeometryBatch.call(this, engine, Jabaku.createCylinderData(11));
+	}
+	CylinderBatch.extends(GeometryBatch);
+
+	function SphereBatch(engine, textureId) {
+		GeometryBatch.call(this, engine, Jabaku.createSphereData(5));
 	}
 	CylinderBatch.extends(GeometryBatch);
 

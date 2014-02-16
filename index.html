@@ -35,6 +35,7 @@
 	<script src="jabaku/renderer/renderer_utils.js" type="text/javascript"></script>
 	<script src="jabaku/renderer/simple_forward_renderer.js" type="text/javascript"></script>
 	<script src="jabaku/renderer/depth_peeling_renderer.js" type="text/javascript"></script>
+	<script src="jabaku/renderer/wireframe_renderer.js" type="text/javascript"></script>
 
 	<script src="jabaku/entity_system/entity_system.js" type="text/javascript"></script>
 	<script src="jabaku/entity_system/system_base.js" type="text/javascript"></script>
@@ -84,7 +85,10 @@
 	var g_mainViewport;
 	var g_screenQuad;
 	var g_partScreenQuad;
+
 	var g_mainRenderer;
+	var g_wireframeRenderer;
+	var g_renderer;
 
 	var g_debugSystem;
 	var g_debugTransSystem;
@@ -138,7 +142,7 @@
 		//===========================================
 		FrameProfiler.start('RenderAll');
 
-		g_mainRenderer.render([g_quadBatch, g_cylinderBatch, g_sphereBatch], 
+		g_renderer.render([g_quadBatch, g_cylinderBatch, g_sphereBatch], 
 			g_mainCamera.get(Vectory.Camera), g_mainLightSettings);
 
 		FrameProfiler.stop();
@@ -282,6 +286,13 @@
 				g_testCoordPlane.saveDecorQuads = g_testCoordPlane.remove(Vectory.DecorationQuads);
 			}
 		}
+		if (event.which == 68) { // D
+			if (g_renderer == g_mainRenderer) {
+				g_renderer = g_wireframeRenderer;
+			} else {
+				g_renderer = g_mainRenderer;
+			}
+		}
 	}
 	function handleKeyUp(event) {
 	}
@@ -310,6 +321,9 @@
 		Engine3D.createProgram('simple_instanced_dp',
 			FileUtils.loadFile('jabaku/shaders/simple_instanced.vshader'),
 			FileUtils.loadFile('jabaku/shaders/simple_instanced_dp.fshader'));
+		Engine3D.createProgram('wireframe_instanced',
+			FileUtils.loadFile('jabaku/shaders/simple_instanced.vshader'),
+			FileUtils.loadFile('jabaku/shaders/wireframe_instanced.fshader'));
 
 		Engine3D.createTextureFromFile('empty_texture', 'jabaku/data/empty_texture.png');
 		Engine3D.createTextureFromFile('line_patterns', 'data/textures/line_patterns.png');
@@ -418,6 +432,8 @@
 			new Vecmath.Quaternion().setAxisAngle(new Vecmath.Vector3(0, 1, 0), 0.0 * Math.PI)));
 
 		g_mainRenderer = new Jabaku.DepthPeelingRenderer(Engine3D, new Color(0.2, 0.2, 0.2, 1.0));
+		g_wireframeRenderer = new Jabaku.WireframeRenderer(Engine3D, new Color(0.2, 0.2, 0.2, 1.0));
+		g_renderer = g_mainRenderer;
 
 		//======================
 		// debug scene

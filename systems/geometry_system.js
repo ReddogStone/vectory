@@ -32,7 +32,7 @@ var Vectory = (function(module) {
 
 			Jabaku.SystemBase.prototype.onComponentRemoved.call(this, entity, component);
 		},
-		_updateOne: function(batch, geometries, trans, material) {
+		_updateOne: function(batch, geometries, trans, material, entityId) {
 			var globalTrans = new Vecmath.Matrix4();
 			if (trans !== undefined) {
 				globalTrans.copy(trans.global);
@@ -52,14 +52,16 @@ var Vectory = (function(module) {
 							material.color, 
 							material.luminosity,
 							material.diffuse,
-							material.specular);
+							material.specular,
+							entityId / 256);
 					} else {
 						geometries.ids[quadIdx] = 
 							batch.add(transform.global,
 								material.color,
 								material.luminosity,
 								material.diffuse,
-								material.specular);
+								material.specular,
+								entityId / 256);
 					}
 				} else {
 					delete geometries[ids];
@@ -70,6 +72,7 @@ var Vectory = (function(module) {
 		update: function() {
 			for (var i = 0; i < this._entities.length; ++i) {
 				var entity = this._entities[i];
+				var entityId = entity.id;
 				var quads = entity.get(Vectory.Quads);
 				var decorQuads = entity.get(Vectory.DecorationQuads);
 				var cylinders = entity.get(Vectory.Cylinders);
@@ -81,22 +84,22 @@ var Vectory = (function(module) {
 				var decorMaterial = entity.get(Vectory.DecorationMaterial);
 
 				if (quads !== undefined) {
-					this._updateOne(this._quadBatch, quads, trans, material);
+					this._updateOne(this._quadBatch, quads, trans, material, entityId);
 				}
 				if (cylinders !== undefined) {
-					this._updateOne(this._cylinderBatch, cylinders, trans, material);
+					this._updateOne(this._cylinderBatch, cylinders, trans, material, entityId);
 				}
 				if (spheres !== undefined) {
-					this._updateOne(this._sphereBatch, spheres, trans, material);
+					this._updateOne(this._sphereBatch, spheres, trans, material, entityId);
 				}
 				if (decorQuads !== undefined) {
-					this._updateOne(this._quadBatch, decorQuads, trans, decorMaterial);
+					this._updateOne(this._quadBatch, decorQuads, trans, decorMaterial, entityId);
 				}
 				if (decorCylinders !== undefined) {
-					this._updateOne(this._cylinderBatch, decorCylinders, trans, decorMaterial);
+					this._updateOne(this._cylinderBatch, decorCylinders, trans, decorMaterial, entityId);
 				}
 				if (decorSpheres !== undefined) {
-					this._updateOne(this._sphereBatch, decorSpheres, trans, decorMaterial);
+					this._updateOne(this._sphereBatch, decorSpheres, trans, decorMaterial, entityId);
 				}
 			}
 		}

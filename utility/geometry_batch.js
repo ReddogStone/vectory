@@ -8,15 +8,16 @@ var Vectory = (function(module) {
 			"aWorldZ": { "components": 4, "type": "FLOAT", "normalized": false },
 			"aWorldW": { "components": 4, "type": "FLOAT", "normalized": false },
 			"aColor": { "components": 4, "type": "FLOAT", "normalized": false },
-			"aLumDiffSpec": { "components": 3, "type": "FLOAT", "normalized": false }
+			"aLumDiffSpecId": { "components": 4, "type": "FLOAT", "normalized": false }
 		};
 		
 		this._batch = new Jabaku.RenderBatch(engine, meshData, instanceDataDesc);
 		this.material = new SimpleInstMaterial(engine);
 	}
 	GeometryBatch.extends(Object, {
-		add: function(transform, color, luminosity, diffuse, specular) {
-			var data = transform.toArray().concat(color.toArray4()).concat([luminosity, diffuse, specular]);
+		add: function(transform, color, luminosity, diffuse, specular, entityId) {
+			var data = transform.toArray().concat(color.toArray4()).
+				concat([luminosity, diffuse, specular, entityId]);
 			return this._batch.addSingleInstance(data);
 		},
 		remove: function(id) {
@@ -29,11 +30,13 @@ var Vectory = (function(module) {
 				color: new Color(data[16], data[17], data[18], data[19]),
 				luminosity: data[20],
 				diffuse: data[21],
-				specular: data[22]
+				specular: data[22],
+				entityId: data[23]
 			};
 		},
-		set: function(id, transform, color, luminosity, diffuse, specular) {
-			var data = transform.toArray().concat(color.toArray4()).concat([luminosity, diffuse, specular]);
+		set: function(id, transform, color, luminosity, diffuse, specular, entityId) {
+			var data = transform.toArray().concat(color.toArray4()).
+				concat([luminosity, diffuse, specular, entityId]);
 			this._batch.setSingleInstance(id, data);
 		},
 		setTransform: function(id, value) {
@@ -71,6 +74,9 @@ var Vectory = (function(module) {
 		},
 		setSpecular: function(id, value) {
 			this._batch.setComponent(id, function(data) { data[22] = value; });
+		},
+		setEntityId: function(id, value) {
+			this._batch.setComponent(id, function(data) { data[23] = value; });
 		},
 
 		// Renderable interface

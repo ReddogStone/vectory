@@ -36,6 +36,7 @@
 	<script src="jabaku/renderer/simple_forward_renderer.js" type="text/javascript"></script>
 	<script src="jabaku/renderer/depth_peeling_renderer.js" type="text/javascript"></script>
 	<script src="jabaku/renderer/wireframe_renderer.js" type="text/javascript"></script>
+	<script src="jabaku/renderer/id_renderer.js" type="text/javascript"></script>
 
 	<script src="jabaku/entity_system/entity_system.js" type="text/javascript"></script>
 	<script src="jabaku/entity_system/system_base.js" type="text/javascript"></script>
@@ -88,6 +89,7 @@
 
 	var g_mainRenderer;
 	var g_wireframeRenderer;
+	var g_idRenderer;
 	var g_renderer;
 
 	var g_debugSystem;
@@ -141,9 +143,15 @@
 		// render scene
 		//===========================================
 		FrameProfiler.start('RenderAll');
+		Engine3D.setBlendMode(BlendMode.NONE);
 
+		g_idRenderer.render([g_quadBatch, g_cylinderBatch, g_sphereBatch],
+			g_mainCamera.get(Vectory.Camera), g_mainLightSettings, 'entity_ids_fb');
 		g_renderer.render([g_quadBatch, g_cylinderBatch, g_sphereBatch], 
 			g_mainCamera.get(Vectory.Camera), g_mainLightSettings);
+
+		Engine3D.renderDebugQuad(Engine3D.getTexture('entity_ids_rt'), 0, 0, 200, 200);
+		Engine3D.renderDepthTexture(Engine3D.getTexture('entity_ids_dt'), 200, 0, 200, 200);
 
 		FrameProfiler.stop();
 
@@ -214,6 +222,7 @@
 
 	var g_drag = {x: 0, y: 0};
 	var g_click = false;
+	var g_moveCamera = false;
 	
 	function handleMouseEvent(event, isDown, type) {
 		var coords = extractMouseCoords(canvas, event);
@@ -231,12 +240,34 @@
 
 	function handleMouseUp(event) {
 		handleMouseEvent(event, false, 'mouseUp');
+
+		var x = g_mouse.x;
+		var y = g_mouse.y;
+
+		if (!g_moveCamera) {
+			Engine3D.setFrameBuffer('entity_ids_fb');
+			var data = new Uint8Array(4);
+			Engine3D.gl.readPixels(x, 768 - y, 1, 1, Engine3D.gl.RGBA, Engine3D.gl.UNSIGNED_BYTE, data);
+
+			if (data[0] == data[1]) {
+				var entity = g_mainSystem.get(data[0]);
+				var mat = entity.get(Vectory.Material);
+				if (mat !== undefined) {
+					mat.luminosity = 1.0;
+				}
+				alert(entity.debugName);
+			}
+		}
+
+		g_moveCamera = false;
 	}
 
 	function handleMouseMove(event) {
 		handleMouseEvent(event, g_mouse.down, 'mouseMove');
 
 		if (g_mouse.down) {
+			g_moveCamera = true;
+
 			var dx = g_drag.x - g_mouse.x;
 			var dy = g_drag.y - g_mouse.y;
 
@@ -324,10 +355,18 @@
 		Engine3D.createProgram('wireframe_instanced',
 			FileUtils.loadFile('jabaku/shaders/simple_instanced.vshader'),
 			FileUtils.loadFile('jabaku/shaders/wireframe_instanced.fshader'));
+		Engine3D.createProgram('id_instanced',
+			FileUtils.loadFile('jabaku/shaders/simple_instanced.vshader'),
+			FileUtils.loadFile('jabaku/shaders/id_instanced.fshader'));
 
 		Engine3D.createTextureFromFile('empty_texture', 'jabaku/data/empty_texture.png');
 		Engine3D.createTextureFromFile('line_patterns', 'data/textures/line_patterns.png');
 		Engine3D.createTextureFromFile('vectory_icon', 'data/vectory_icon.png');
+
+		var bufferSize = Engine3D.getDrawingBufferSize();
+		Engine3D.createFrameBuffer('entity_ids_fb', 
+			Engine3D.createRenderTexture('entity_ids_rt', bufferSize),
+			Engine3D.createDepthTexture('entity_ids_dt', bufferSize));
 
 		//======================
 		// main scene
@@ -433,6 +472,7 @@
 
 		g_mainRenderer = new Jabaku.DepthPeelingRenderer(Engine3D, new Color(0.2, 0.2, 0.2, 1.0));
 		g_wireframeRenderer = new Jabaku.WireframeRenderer(Engine3D, new Color(0.2, 0.2, 0.2, 1.0));
+		g_idRenderer = new Jabaku.IdRenderer(Engine3D, new Color(1.0, 0.0, 0.0, 1.0));
 		g_renderer = g_mainRenderer;
 
 		//======================
